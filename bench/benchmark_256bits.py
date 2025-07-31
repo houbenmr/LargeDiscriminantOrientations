@@ -1,7 +1,14 @@
 # Bruno Sterner prime for lambda = 256, Apr 14, 2025
-p = 0xaee61f0e7eb0b904142a14b1ba552ca011c6104b007e448fe6aed1f1af734f1f
+p = 0x53d1c0debdc0c1ba3edd760148d21a078008f642a9f26f65995c4d86fc6efff7
 r = 13
 lmbda = 256
+
+import sys
+import os
+from pathlib import Path
+current_file = Path(__file__).resolve()
+current_folder = current_file.parent
+sys.path.append(str(current_folder.parent / 'code/scheme'))
 
 from time import time
 from parameters import setup
@@ -43,7 +50,7 @@ for i in range(25):
 
 from numpy import median, std
 
-with open('bench.out', 'w') as op:
+with open(current_folder / 'bench-256.out', 'w') as op:
     op.write('Timing results for a 256-bit group action' + '\n')
     op.write('The median is ' + str(median(timings)) + '\n')
     op.write('The standard deviation is ' + str(std(timings)))

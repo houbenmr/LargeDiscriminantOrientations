@@ -17,9 +17,10 @@ E0 = EllipticCurve([Fp(1), 0])
 
 import time
 import sys
-import os
-
-sys.path.append(os.path.abspath('../external_modules/KummerIsogeny'))
+from pathlib import Path
+current_file = Path(__file__).resolve()
+current_folder = current_file.parent
+sys.path.append(str(current_folder.parent / 'external_modules/KummerIsogeny'))
 
 from kummer_line import KummerLine
 from kummer_isogeny import KummerLineIsogeny
@@ -103,7 +104,7 @@ P0, Q0 = find_torsion_basis(K0)
 
 timing_data = []
 
-for i in range(10):
+for i in range(20):
     
     secret_alice = [randint(0,1) for ell in ells]
     secret_bob = [randint(0,1) for ell in ells]
@@ -116,9 +117,6 @@ for i in range(10):
 
     timing_data.append(end-start)
     
-    with open('timing-data.out', 'a') as op:
-        op.write(str(end-start) + '\n')
-
     PA, QA = find_torsion_basis(KA)
 
     start = time.time()
@@ -129,12 +127,9 @@ for i in range(10):
 
     timing_data.append(end-start)
 
-    with open('timing-data.out', 'a') as op:
-        op.write(str(end-start) + '\n')
-
 from numpy import median, std
     
-with open('bench.out', 'w') as op:
+with open(current_folder / 'bench-dCSIDH4096.out', 'w') as op:
     op.write('Timing results for a 4096-bit dCSIDH group action' + '\n')
-    op.write('The median is ' + str(median(timings)) + '\n')
-    op.write('The standard deviation is ' + str(std(timings)))
+    op.write('The median is ' + str(median(timing_data)) + '\n')
+    op.write('The standard deviation is ' + str(std(timing_data)))

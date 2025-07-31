@@ -2,7 +2,9 @@ import sys
 import os
 import time
 
-sys.path.append(os.path.abspath('../external_modules/KummerIsogeny'))
+from pathlib import Path
+current_file = Path(__file__).resolve()
+sys.path.append(str(current_file.parent.parent / 'external_modules/KummerIsogeny'))
 
 from sage.all import ZZ
 from math import prod

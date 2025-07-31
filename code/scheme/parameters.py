@@ -3,6 +3,10 @@ from math import prod
 import csv
 import ast  # To safely evaluate string representations of lists
 
+from pathlib import Path
+current_file = Path(__file__).resolve()
+current_folder = current_file.parent
+
 from scheme_cost import minimize_scheme_cost
 from orientation_tools import find_sigma, generate_cycle
 
@@ -84,13 +88,13 @@ def setup(p, r, Ms = 0, Mt = 0, trace = 0, search_database = True, generate = Fa
     print('Using Ms =', ZZ(Ms).factor(), 'and Mt =', ZZ(Mt).factor())
     
     if search_database:
-        with open("orientation_data.csv", mode="r") as file:
+        with open(current_folder / 'orientation_data.csv', mode='r') as file:
             reader = csv.DictReader(file, delimiter=';')
             data = []
             found = False
             for row in reader:
                 if p == int(row['p']) and r == int(row['r']) and Ms == int(row['Ms']) and Mt == int(row['Mt']):
-                    trace == int(row['trace'])
+                    trace = int(row['trace'])
                     raw_cycle = ast.literal_eval(row['base_cycle'])
                     print('Found scheme parameters in database.')
                     return Parameters(p, r, Ms, Mt, trace, raw_cycle)
@@ -103,13 +107,13 @@ def setup(p, r, Ms = 0, Mt = 0, trace = 0, search_database = True, generate = Fa
 
         sigma, trace = find_sigma(p, r, M, trace = trace)
 
-        raw_cycle = generate_cycle(p, r, Ms, Mt, sigma)
+        raw_cycle = generate_cycle(p, r, Ms, Mt, sigma, trace)
 
         print('found base cycle', raw_cycle)
 
         if write:
             new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
-            with open("orientation_data.csv", mode="a", newline="") as file:
+            with open(current_folder / 'orientation_data.csv', mode='a', newline="") as file:
                 writer = csv.writer(file, delimiter=";")
                 writer.writerow(new_row)
 

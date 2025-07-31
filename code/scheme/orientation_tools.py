@@ -1,11 +1,16 @@
 import time
 import sys
 import os
+import csv
+import ast  # To safely evaluate string representations of lists
 
 from sage.all import *
 
-sys.path.append(os.path.abspath('../external_modules'))
-sys.path.append(os.path.abspath('../external_modules/KummerIsogeny'))
+from pathlib import Path
+current_file = Path(__file__).resolve()
+current_folder = current_file.parent
+sys.path.append(str(current_folder.parent / 'external_modules'))
+sys.path.append(str(current_folder.parent / 'external_modules/KummerIsogeny'))
 
 from deuring.broker import starting_curve
 from deuring.randomideal import random_ideal
@@ -57,7 +62,7 @@ def find_sigma(p, r, M, trace = 0, num_cores = 1):
     while True:
         while True:
 
-            for foo in range(num_cores):
+            for _ in range(num_cores):
                 x = x.next_prime() # silly method to parallelize
 
             candidate_discriminant = 4*M**r-x**2
@@ -93,7 +98,7 @@ def find_sigma(p, r, M, trace = 0, num_cores = 1):
     
     print('Found endomorphism of trace', x)
     
-    with open('found_trace_started_from' + str(trace) + '.txt', 'w') as op:
+    with open(current_folder / ('found_trace_started_from' + str(trace) + '.txt'), 'w') as op:
         op.write(str(x))
     
     Disc_sigma = 4*M**r-x**2
@@ -340,9 +345,7 @@ def multiple_point_KummerLineIsogeny(K, kernel_list, degree_list, eval_list = []
     else:
         return K
 
-def generate_cycle(p, r, Ms, Mt, sigma):
-
-    aff_cycle = []
+def generate_cycle(p, r, Ms, Mt, sigma, trace):
 
     Fp = GF(p)
     R = PolynomialRing(Fp, 'X')
@@ -363,35 +366,84 @@ def generate_cycle(p, r, Ms, Mt, sigma):
     K_home = KummerLine(E_straight.curve)
     A = Fq(K_home.a())
 
+    # check temp.csv for a backup
+    backup_found = 0
+    with open(current_folder / 'temp.csv', mode='r') as file:
+        reader = csv.DictReader(file, delimiter=';')
+        data = []
+        found = False
+        for row in reader:
+            if p == int(row['p']) and r == int(row['r']) and Ms == int(row['Ms']) and Mt == int(row['Mt']) and trace == int(row['trace']):
+                raw_cycle = ast.literal_eval(row['base_cycle'])
+                aff_cycle = [[x[0]+x[1]*i if not x[0] == None else None for x in tup] for tup in raw_cycle]
+                backup_found = 1
+                print('Found backup in temp.csv')
+                print('aff_cycle =', aff_cycle)
+                
+    if not backup_found:
+        
+        # initialize base curve
+        
+        aff_cycle = []
+        raw_cycle = []
+        
+        if Mt == 1:
+    
+            Ps = K_home(P_straight[0])
+            Qs = K_home(Q_straight[0])
+    
+            Pt = K_home.zero()
+            Qt = K_home.zero()
+            
+            xPs = Ps.x()
+            xQs = Qs.x()
+            
+            xPt = None
+            xQt = None
+    
+        else:
+            
+            Ps, Pt = K_home(P_straight[0]), K_home(alpha**(-1) * P_twist[0]) # These points live on K_home (the Kummer line of E_straight)
+            Qs, Qt = K_home(Q_straight[0]), K_home(alpha**(-1) * Q_twist[0]) # These points live on K_home (the Kummer line of E_straight)
+            
+            assert Mt * Pt == K_home.zero()
+            assert Mt * Qt == K_home.zero()
+            
+            xPs, xPt = Ps.x(), Pt.x()
+            xQs, xQt = Qs.x(), Qt.x()
+            
+        tup = [A, xPs, xPt, xQs, xQt]
+        raw_tup = []
+        
+        for x in tup:
+            if x == None:
+                raw_tup.append([None, None])
+            else:
+                raw_tup.append([(Fq(x).polynomial())[0], (Fq(x).polynomial())[1]])
+                
+        aff_cycle.append(tup)
+        raw_cycle.append(raw_tup)
+        
+        new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
+        with open(current_folder / 'temp.csv', mode='w', newline="") as file:
+            writer = csv.writer(file, delimiter=";")
+            writer.writerow(['p','r','trace','Ms','Mt','base_cycle'])
+            writer.writerow(new_row)
+
+    starting_length = len(aff_cycle) # this equals 1 if we did not find a backup
+
+    [A, xPs, xPt, xQs, xQt] = aff_cycle[-1]
+
+    K_home = KummerLine(EllipticCurve([0,A,0,1,0]))
+
     if Mt == 1:
-
-        Ps = K_home(P_straight[0])
-        Qs = K_home(Q_straight[0])
-
-        Pt = K_home.zero()
-        Qt = K_home.zero()
-        
-        xPs = Ps.x()
-        xQs = Qs.x()
-        
-        xPt = None
-        xQt = None
-
+        Ps, Pt = K_home(xPs), K_home.zero()
+        Qs, Qt = K_home(xQs), K_home.zero()
     else:
-        
-        Ps, Pt = K_home(P_straight[0]), K_home(alpha**(-1) * P_twist[0]) # These points live on K_home (the Kummer line of E_straight)
-        Qs, Qt = K_home(Q_straight[0]), K_home(alpha**(-1) * Q_twist[0]) # These points live on K_home (the Kummer line of E_straight)
-        
-        assert Mt * Pt == K_home.zero()
-        assert Mt * Qt == K_home.zero()
-        
-        xPs, xPt = Ps.x(), Pt.x()
-        xQs, xQt = Qs.x(), Qt.x()
-
+        Ps, Pt = K_home(xPs), K_home(xPt)
+        Qs, Qt = K_home(xQs), K_home(xQt)
     
-    aff_cycle.append([A, xPs, xPt, xQs, xQt])
-    
-    for e in range(1,r):
+    for e in range(starting_length, r):
     
         K_base, [Qs, Qt] = multiple_point_KummerLineIsogeny(K_home, [Ps, Pt], [Ms, Mt], [Qs, Qt])
         E_base = K_base.curve()
@@ -439,20 +491,22 @@ def generate_cycle(p, r, Ms, Mt, sigma):
 
         assert Ms * Ps == K_home.zero()
         assert Mt * Pt == K_home.zero()
-        
-        aff_cycle.append([A, xPs, xPt, xQs, xQt])
 
-    raw_cycle = []
-
-    for tup in aff_cycle:
+        tup = [A, xPs, xPt, xQs, xQt]
         raw_tup = []
         for x in tup:
             if x == None:
                 raw_tup.append([None, None])
             else:
                 raw_tup.append([(Fq(x).polynomial())[0], (Fq(x).polynomial())[1]])
-        raw_cycle.append(raw_tup)
 
-    print('raw_cycle is', raw_cycle)
+        aff_cycle.append(tup)
+        raw_cycle.append(raw_tup)
+        
+        new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
+        with open(current_folder / 'temp.csv', mode='w', newline="") as file:
+            writer = csv.writer(file, delimiter=";")
+            writer.writerow(['p','r','trace','Ms','Mt','base_cycle'])
+            writer.writerow(new_row)
 
     return raw_cycle
