@@ -3,13 +3,13 @@ Proof-of-concept SageMath implementation associated to the paper
 
 https://ia.cr/2025/1098
 
-The main code can be found in the folder `/code/scheme/`
+The main code can be found in the folder `code/scheme/`
 The 256-bit example in the paper can be evaluated using
 
 ```sage bench/benchmark_256bits.py```
 
 This does 25 full key exchanges (4 ideal actions each).
-The average results are saved in `/bench/bench-256.out`
+The average results are saved in `bench/bench-256.out`
 
 An unoptimized version of dCSIDH (https://ia.cr/2023/793) can be evaluated using
 
@@ -17,7 +17,7 @@ An unoptimized version of dCSIDH (https://ia.cr/2023/793) can be evaluated using
 
 This does 20 "half" key exchanges (2 ideal actions each).
 
-The folder `/code/external_modules/` contains the packages
+The folder `code/external_modules/` contains the packages
 
 - deuring
 by: Jonathan Komada Eriksen, Lorenz Panny, Jana Sotáková, and Mattia Veroni
