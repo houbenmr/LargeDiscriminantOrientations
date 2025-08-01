@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 
+# sage to python
+*.sage.py
+
 # Checkpoints
 .ipynb_checkpoints/
 
