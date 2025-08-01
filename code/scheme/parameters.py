@@ -88,7 +88,7 @@ def setup(p, r, Ms = 0, Mt = 0, trace = 0, search_database = True, generate = Fa
     print('Using Ms =', ZZ(Ms).factor(), 'and Mt =', ZZ(Mt).factor())
     
     if search_database:
-        with open(current_folder / 'orientation_data.csv', mode='r') as file:
+        with open(current_folder / 'orientation_data/orientation_data.csv', mode='r') as file:
             reader = csv.DictReader(file, delimiter=';')
             data = []
             found = False
@@ -113,7 +113,7 @@ def setup(p, r, Ms = 0, Mt = 0, trace = 0, search_database = True, generate = Fa
 
         if write:
             new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
-            with open(current_folder / 'orientation_data.csv', mode='a', newline="") as file:
+            with open(current_folder / 'orientation_data/orientation_data.csv', mode='a', newline="") as file:
                 writer = csv.writer(file, delimiter=";")
                 writer.writerow(new_row)
 

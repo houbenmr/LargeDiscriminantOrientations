@@ -1,6 +1,5 @@
 import time
 import sys
-import os
 import csv
 import ast  # To safely evaluate string representations of lists
 
@@ -47,13 +46,11 @@ def find_sigma(p, r, M, trace = 0, num_cores = 1):
         print('trace prespecified; looking for an endomorphism with trace', trace)
         x = ZZ(trace - 1)
     else:
-        print('trace not prespecified; the trace will be computed')
+        print('trace not prespecified; computing orientation...')
         x = ZZ(1)
     
     target_norm = M**r
 
-    print('Trying to find an endomorphism of norm M^r...')
-    
     if target_norm < p:
         raise ValueError('The desired norm is too small')
     
@@ -98,26 +95,27 @@ def find_sigma(p, r, M, trace = 0, num_cores = 1):
     
     print('Found endomorphism of trace', x)
     
-    with open(current_folder / ('found_trace_started_from' + str(trace) + '.txt'), 'w') as op:
-        op.write(str(x))
+    if num_cores > 1:
+        with open(current_folder / ('found_trace_started_from' + str(trace) + '.txt'), 'w') as op:
+            op.write(str(x))
     
     Disc_sigma = 4*M**r-x**2
 
     start = time.time()
     if r%2:
-        print('Verifying that the discriminant is prime...')
+#       Verifying that the discriminant is really prime
         if not Disc_sigma.is_prime():
             raise ValueError('the discriminant is pseudoprime but not prime', Disc_sigma) # This shouldn't happen
     else:
         factor_1 = 2*M**(r//2)+x
         factor_2 = 2*M**(r//2)-x
-        print('Verifying that the two factors of the discriminant are prime...')
+#       Verifying that the two factors of the discriminant are really prime
         if not factor_1.is_prime() or not factor_2.is_prime():
             raise ValueError('one of the factors of the discriminant is pseudoprime but not prime', Disc_sigma) # This shouldn't happen
     end = time.time()
     
-    print('Verification complete. This took time', end - start)
-    print('the bitsize of the discriminant of sigma is', log(int(Disc_sigma), 2))
+#    print('Verification complete. This took time', end - start)
+    print('The bitsize of the discriminant of sigma is', log(int(Disc_sigma), 2))
 
     return sigma, x
     
@@ -368,7 +366,7 @@ def generate_cycle(p, r, Ms, Mt, sigma, trace):
 
     # check temp.csv for a backup
     backup_found = 0
-    with open(current_folder / 'temp.csv', mode='r') as file:
+    with open(current_folder / 'orientation_data/temp.csv', mode='r') as file:
         reader = csv.DictReader(file, delimiter=';')
         data = []
         found = False
@@ -425,7 +423,7 @@ def generate_cycle(p, r, Ms, Mt, sigma, trace):
         raw_cycle.append(raw_tup)
         
         new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
-        with open(current_folder / 'temp.csv', mode='w', newline="") as file:
+        with open(current_folder / 'orientation_data/temp.csv', mode='w', newline="") as file:
             writer = csv.writer(file, delimiter=";")
             writer.writerow(['p','r','trace','Ms','Mt','base_cycle'])
             writer.writerow(new_row)
@@ -504,7 +502,7 @@ def generate_cycle(p, r, Ms, Mt, sigma, trace):
         raw_cycle.append(raw_tup)
         
         new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
-        with open(current_folder / 'temp.csv', mode='w', newline="") as file:
+        with open(current_folder / 'orientation_data/temp.csv', mode='w', newline="") as file:
             writer = csv.writer(file, delimiter=";")
             writer.writerow(['p','r','trace','Ms','Mt','base_cycle'])
             writer.writerow(new_row)

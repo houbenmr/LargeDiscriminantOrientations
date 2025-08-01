@@ -1,5 +1,4 @@
 import sys
-import os
 
 from pathlib import Path
 current_file = Path(__file__).resolve()
@@ -73,9 +72,14 @@ class SecretKey:
     def reduce(self, exps_straight, exps_twist, k):
         # if (s_i > k*e_i), reduce modulo e_i (with output in [1,...,e_i])
         # if (s_i <= k*e_i), set to 0
-        vec_straight_red = [((x - 1) % m + 1) * int((x // m) > k) for x, m in zip(self.straight, exps_straight)]
-        vec_twist_red = [((x - 1) % m + 1) * int((x // m) > k) for x, m in zip(self.twist, exps_twist)]
+        vec_straight_red = [max(min(x - k*m, m), 0) for x, m in zip(self.straight, exps_straight)]
+        vec_twist_red = [max(min(x - k*m, m), 0) for x, m in zip(self.twist, exps_twist)]
         return SecretKey(vec_straight_red, vec_twist_red)
+
+    def min(self, other):
+        vec_straight = [x-y for x, y in zip(self.straight, other.straight)]
+        vec_twist = [x-y for x, y in zip(self.twist, other.twist)]
+        return SecretKey(vec_straight, vec_twist)
 
 def keygen(B):
     vec_straight = [randint(0, B*exp) for exp in params.exps_straight]
@@ -179,10 +183,13 @@ def group_action(aff_cycle, sk, B):
     # where s_i >= 0 for all i.
     # Output:
     # - a list of the affine representations of the cycle of oriented curves [a]E_0, [a]E_1, ... , [a]E_{r-1}.
-
+    
+#    skt = sk # for printing
+    
     for k in range(B):
         sk_squarefree = sk.reduce(params.exps_straight, params.exps_twist, k)
-#        print(sk_squarefree.straight, sk_squarefree.twist)
+#        skt = skt.min(sk_squarefree)
+#        print(skt)
         aff_cycle = group_action_square_free(aff_cycle, sk_squarefree)
 
     return aff_cycle
