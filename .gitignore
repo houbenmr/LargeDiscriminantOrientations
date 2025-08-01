@@ -1,6 +1,9 @@
-# Ignore Python bytecode
+# Python bytecode
 __pycache__/
 *.py[cod]
 
-# Ignore benchmark output
+# Checkpoints
+.ipynb_checkpoints/
+
+# Benchmark output
 *.out
