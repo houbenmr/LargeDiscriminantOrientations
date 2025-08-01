@@ -129,7 +129,7 @@ def group_action_home_base(aff_home, aff_base, vec_straight):
     extra_aut = False
     if len(isos) > 2:
         extra_aut = True
-        print("Extra automorphisms detected; possible correction required.")
+#        print("Extra automorphisms detected; possible correction required.")
     if extra_aut:
         it = 0
         for iso in isos:
@@ -139,7 +139,7 @@ def group_action_home_base(aff_home, aff_base, vec_straight):
             Ps = OK_right.K(xPs)
             cofactor = params.Ms // 3
             if not cofactor * Ps == cofactor * OK_right.Qs:
-                print("Problem solved after",it,"iterations.")
+#                print("Problem solved after",it,"iterations.")
                 break
     else:
         iso_x = isos[0].x_rational_map()

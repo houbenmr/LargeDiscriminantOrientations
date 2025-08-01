@@ -133,7 +133,7 @@ def group_action_home_base(aff_home, aff_base, vec_straight, vec_twist):
     extra_aut = False
     if len(isos) > 2:
         extra_aut = True
-        print("Extra automorphisms detected; possible correction required.")
+#        print("Extra automorphisms detected; possible correction required.")
     if extra_aut:
         it = 0
         for iso in isos:
@@ -146,7 +146,7 @@ def group_action_home_base(aff_home, aff_base, vec_straight, vec_twist):
             cofactor_straight = params.Ms // 3
             cofactor_twist = params.Mt // 3
             if not cofactor_straight * Ps == cofactor_straight * OK_right.Qs and not cofactor_twist * Pt == cofactor_twist * OK_right.Qt:
-                print("Problem solved after",it,"iterations.")
+#                print("Problem solved after",it,"iterations.")
                 break
     else:
         iso_x = isos[0].x_rational_map()
