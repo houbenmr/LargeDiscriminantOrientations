@@ -11,7 +11,7 @@ from scheme_cost import minimize_scheme_cost
 from orientation_tools import find_sigma, generate_cycle
 
 class Parameters:
-    def __init__(self, p, r, Ms, Mt, trace, raw_cycle):
+    def __init__(self, p, r, Ms, Mt, sigma, raw_cycle):
 
         M = Ms * Mt
         tups = ZZ(M).factor()
@@ -28,15 +28,24 @@ class Parameters:
         Fq = Fp.extension(X**2+1, 'i')
         i = Fq.gen()
 
+        [a,b,c,d] = sigma
+
+        trace = ZZ(2*a+d)
+
+        alpha = Fq(2*a+d + (2*b+c)*i)/2
+        alpha_sq = alpha**2
+
         base_cycle = [[x[0]+x[1]*i for x in tup if not x[0] == None] for tup in raw_cycle]
 
+        self.trace = trace
+        self.alpha = alpha
+        self.alpha_sq = alpha_sq
         self.base_field = Fq
         self.p = p
         self.r = r
         self.Ms = Ms
         self.Mt = Mt
         self.M = M
-        self.trace = trace
         self.ells = ells
         self.exps = exps
         self.ells_straight = ells_straight
@@ -96,8 +105,9 @@ def setup(p, r, Ms = 0, Mt = 0, trace = 0, search_database = True, generate = Fa
                 if p == int(row['p']) and r == int(row['r']) and Ms == int(row['Ms']) and Mt == int(row['Mt']):
                     trace = int(row['trace'])
                     raw_cycle = ast.literal_eval(row['base_cycle'])
+                    sigma = ast.literal_eval(row['sigma'])
                     print('Found scheme parameters in database.')
-                    return Parameters(p, r, Ms, Mt, trace, raw_cycle)
+                    return Parameters(p, r, Ms, Mt, sigma, raw_cycle)
                     
         print('The data p, r, Ms, Mt does not appear in the database.')
 
@@ -112,9 +122,9 @@ def setup(p, r, Ms = 0, Mt = 0, trace = 0, search_database = True, generate = Fa
         print('found base cycle', raw_cycle)
 
         if write:
-            new_row = [p, r, trace, Ms, Mt, str(raw_cycle).replace(" ","")]
+            new_row = [p, r, trace, str(sigma).replace(" ",""), Ms, Mt, str(raw_cycle).replace(" ","")]
             with open(current_folder / 'orientation_data/orientation_data.csv', mode='a', newline="") as file:
                 writer = csv.writer(file, delimiter=";")
                 writer.writerow(new_row)
 
-        return Parameters(p, r, Ms, Mt, trace, raw_cycle)
+        return Parameters(p, r, Ms, Mt, sigma, raw_cycle)

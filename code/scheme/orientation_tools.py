@@ -89,7 +89,7 @@ def find_sigma(p, r, M, trace = 0, num_cores = 1):
                     
     a = ZZ((x-d)/2)
     b = ZZ((y-c)/2)
-    
+
     sigma = [a,b,c,d]
     sigma_dual = [a+d,-b,-c,-d]
     
@@ -375,8 +375,8 @@ def generate_cycle(p, r, Ms, Mt, sigma, trace):
                 raw_cycle = ast.literal_eval(row['base_cycle'])
                 aff_cycle = [[x[0]+x[1]*i if not x[0] == None else None for x in tup] for tup in raw_cycle]
                 backup_found = 1
-                print('Found backup in temp.csv')
-                print('aff_cycle =', aff_cycle)
+#                print('Found backup in temp.csv')
+#                print('aff_cycle =', aff_cycle)
                 
     if not backup_found:
         
